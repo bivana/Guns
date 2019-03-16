@@ -422,3 +422,53 @@ CREATE TABLE `sys_user`  (
 INSERT INTO `sys_user` VALUES (1, '1', 'admin', '1d6b1208c7d151d335790276a18e3d99', 'q6taw', 'stylefeng', '2018-11-16 00:00:00', 'M', 'sn93@qq.com', '18200000000', '1', 27, 'ENABLE', '2016-01-29 08:49:53', NULL, '2018-12-28 22:52:24', 24, 25);
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+
+DROP TABLE IF EXISTS money_user;
+CREATE TABLE money_user  (
+  `user_id` bigint(20) NOT NULL COMMENT '主键id',
+  name varchar(255) not null comment '姓名',
+  `avatar_url` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '头像',
+  `bonus_points` double  DEFAULT 0 COMMENT '金额',
+  `status` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '状态(字典)',
+  `create_time` datetime(0) DEFAULT NULL COMMENT '创建时间',
+  `modify_time` datetime(0) DEFAULT NULL COMMENT '更新时间',
+  `version` int(11) DEFAULT NULL COMMENT '乐观锁',
+  PRIMARY KEY (`USER_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '记账用户 ' ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS weixin_user;
+CREATE TABLE weixin_user  (
+  `id` bigint(20) NOT NULL auto_increment COMMENT '主键id',
+  nick_name varchar(255) not null comment '微信昵称',
+  `gender` int(1)  COMMENT ' 性别 1：男 0：女',
+  `language` varchar(100) DEFAULT 0 COMMENT '语言',
+  `city` varchar(100)  COMMENT '城市',
+  province varchar(100) comment '省份',
+  country varchar(100) comment '国家',
+  avatar_url varchar(255) comment '头像url',
+   `status` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '状态(字典)',
+ `create_time` datetime(0) DEFAULT NULL COMMENT '创建时间',
+  `modify_time` datetime(0) DEFAULT NULL COMMENT '更新时间',
+  weixin_key varchar(255) comment '微信key',
+  `version` int(11) DEFAULT NULL COMMENT '乐观锁',
+  money_user_id bigint(20) comment '记账用户id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '微信用户 ' ROW_FORMAT = Dynamic;
+
+
+DROP TABLE IF EXISTS category;
+CREATE TABLE category  (
+  `id` bigint(20) NOT NULL auto_increment COMMENT '主键id',
+  user_id bigint(20) NOT NULL COMMENT '用户id',
+  name varchar(255) not null comment '分类名称',
+  `icon_path` varchar(255)  COMMENT '图片地址',
+  `type` varchar(100) DEFAULT 0 COMMENT '类别',
+  `parent_id` bigint(20)  COMMENT '父分类id',
+   `status` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '状态(字典)',
+ `create_time` datetime(0) DEFAULT NULL COMMENT '创建时间',
+  `modify_time` datetime(0) DEFAULT NULL COMMENT '更新时间',
+  `version` int(11) DEFAULT NULL COMMENT '乐观锁',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '分类 ' ROW_FORMAT = Dynamic;
