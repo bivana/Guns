@@ -1,4 +1,4 @@
-package cn.stylefeng.guns.modular.book.keeping.factory;
+package cn.stylefeng.guns.modular.money.factory;
 
 import cn.stylefeng.roses.core.util.MD5Util;
 import org.springframework.util.StringUtils;
@@ -21,7 +21,7 @@ public class SessionFactory {
 
     /**生成session*/
     public static String buildSession(HttpServletRequest request){
-        String code=request.getHeader("X-WX-Code");
+        String code=request.getHeader("X-WX-Skey");
         String appId=request.getHeader("X-WX-APP-ID");
         return buildSession(appId,code);
     }

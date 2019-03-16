@@ -1,86 +1,78 @@
 package cn.stylefeng.guns.modular.money.service;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.stylefeng.guns.core.common.constant.Const;
 import cn.stylefeng.guns.core.common.constant.state.ManagerStatus;
-import cn.stylefeng.guns.core.common.exception.BizExceptionEnum;
-import cn.stylefeng.guns.core.common.node.MenuNode;
-import cn.stylefeng.guns.core.common.page.LayuiPageFactory;
-import cn.stylefeng.guns.core.shiro.ShiroKit;
-import cn.stylefeng.guns.core.shiro.ShiroUser;
-import cn.stylefeng.guns.core.shiro.service.UserAuthService;
-import cn.stylefeng.guns.core.util.ApiMenuFilter;
 import cn.stylefeng.guns.modular.money.entity.MoneyUser;
+import cn.stylefeng.guns.modular.money.entity.WeixinUser;
 import cn.stylefeng.guns.modular.money.mapper.MoneyUserMapper;
-import cn.stylefeng.guns.modular.system.entity.User;
+import cn.stylefeng.guns.modular.money.mapper.WeixinUserMapper;
 import cn.stylefeng.guns.modular.system.factory.UserFactory;
-import cn.stylefeng.guns.modular.system.mapper.UserMapper;
-import cn.stylefeng.guns.modular.system.model.UserDto;
-import cn.stylefeng.guns.modular.system.service.MenuService;
-import cn.stylefeng.roses.core.datascope.DataScope;
-import cn.stylefeng.roses.kernel.model.exception.ServiceException;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 
 /**
  * <p>
- * 管理员表 服务实现类
+ * 微信用户表 服务实现类
  * </p>
  *
  * @author stylefeng
  * @since 2018-12-07
  */
 @Service
-public class MoneyUserService extends ServiceImpl<MoneyUserMapper, MoneyUser> {
-//
-//    /**
-//     * 添加用戶
-//     *
-//     * @author fengshuonan
-//     * @Date 2018/12/24 22:51
-//     */
-//    public void addUser(UserDto user) {
-//
-//        // 判断账号是否重复
-//        User theUser = this.getByAccount(user.getAccount());
-//        if (theUser != null) {
-//            throw new ServiceException(BizExceptionEnum.USER_ALREADY_REG);
-//        }
-//
-//        // 完善账号信息
-//        String salt = ShiroKit.getRandomSalt(5);
-//        String password = ShiroKit.md5(user.getPassword(), salt);
-//
-//        this.save(UserFactory.createUser(user, password, salt));
-//    }
-//
-//    /**
-//     * 修改用户
-//     *
-//     * @author fengshuonan
-//     * @Date 2018/12/24 22:53
-//     */
-//    public void editUser(UserDto user) {
-//        User oldUser = this.getById(user.getUserId());
-//
-//        if (ShiroKit.hasRole(Const.ADMIN_NAME)) {
-//            this.updateById(UserFactory.editUser(user, oldUser));
-//        } else {
-//            this.assertAuth(user.getUserId());
-//            ShiroUser shiroUser = ShiroKit.getUserNotNull();
-//            if (shiroUser.getId().equals(user.getUserId())) {
-//                this.updateById(UserFactory.editUser(user, oldUser));
-//            } else {
-//                throw new ServiceException(BizExceptionEnum.NO_PERMITION);
-//            }
-//        }
-//    }
+public class WeixinUserService extends ServiceImpl<WeixinUserMapper, WeixinUser> {
+
+    @Autowired
+    private MoneyUserMapper moneyUserMapper;
+
+    /**
+     * 添加或更新用户
+     * */
+    public void addOrUpdate(WeixinUser weixinUser){
+        WeixinUser exists=getByKey(weixinUser.getWeixinKey());
+        if(exists==null){
+            addUser(weixinUser);
+        }else{
+            editUser(weixinUser);
+        }
+    }
+
+    /**
+     * 添加用戶
+     *
+     * @author fengshuonan
+     * @Date 2018/12/24 22:51
+     */
+    @Transactional
+    public void addUser(WeixinUser weixinUser) {
+        MoneyUser moneyUser=new MoneyUser();
+        moneyUser.setAvatarUrl(weixinUser.getAvatarUrl());
+        moneyUser.setBonusPoints(0.0);
+        moneyUser.setCreateTime(new Date());
+        moneyUser.setStatus(ManagerStatus.OK.getCode());
+        moneyUser.setName(weixinUser.getNickName());
+        moneyUserMapper.insert(moneyUser);
+
+        weixinUser.setCreateTime(new Date());
+        weixinUser.setStatus(ManagerStatus.OK.getCode());
+        weixinUser.setMoneyUserId(moneyUser.getUserId());
+        this.save(weixinUser);
+
+    }
+
+    /**
+     * 修改用户
+     *
+     * @author fengshuonan
+     * @Date 2018/12/24 22:53
+     */
+    public void editUser(WeixinUser user) {
+        WeixinUser oldUser = this.getByKey(user.getWeixinKey());
+        user.setId(oldUser.getId());
+        this.updateById(user);
+    }
 //
 //    /**
 //     * 删除用户
@@ -150,15 +142,15 @@ public class MoneyUserService extends ServiceImpl<MoneyUserMapper, MoneyUser> {
 //        return this.baseMapper.setRoles(userId, roleIds);
 //    }
 //
-//    /**
-//     * 通过账号获取用户
-//     *
-//     * @author fengshuonan
-//     * @Date 2018/12/24 22:46
-//     */
-//    public User getByAccount(String account) {
-//        return this.baseMapper.getByAccount(account);
-//    }
+    /**
+     * 通过微信key获取
+     *
+     * @author fengshuonan
+     * @Date 2018/12/24 22:46
+     */
+    public WeixinUser getByKey(String weixinKey) {
+        return this.baseMapper.getByKey(weixinKey);
+    }
 //
 //    /**
 //     * 获取用户菜单列表

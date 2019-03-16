@@ -1,63 +1,50 @@
 package cn.stylefeng.guns.modular.money.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import org.apache.ibatis.annotations.Options;
 
 import java.util.Date;
+import java.util.List;
 
 /**
- * 微信小程序用户
+ * 记账分类
  * */
-@TableName("weixin_user")
-public class WeixinUser {
+@TableName("category")
+public class Category {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 微信昵称
+     * 分类名称
      * */
-    @TableField("nick_name")
-    private String nickName;
+    @TableField("name")
+    private String name;
 
     /**
-     * 性别 1：男 0：女
+     * 图标地址
      */
-    @TableField("gender")
-    private Integer gender;
+    @TableField("icon_path")
+    @JSONField(name = "icon_path")
+    private String iconPath;
 
     /**
-     * 语言
+     * 类别：expand
      * */
-    @TableField("language")
-    private String language;
+    @TableField("type")
+    private String type;
 
     /**
-     * 城市
+     * 父分类id
      * */
-    @TableField("city")
-    private String city;
+    @TableField("parent_id")
+    @JSONField(name = "parent_id")
+    private Long parentId;
 
-    /**
-     * 省份
-     * */
-    @TableField("province")
-    private String province;
 
-    /**
-     * 头像url
-     * */
-    @TableField("avatar_url")
-    private String avatarUrl;
-
-    /**
-     * 国家
-     * */
-    @TableField("country")
-    private String country;
     /**
      * 状态
      * */
@@ -68,11 +55,13 @@ public class WeixinUser {
      * 创建时间
      * */
     @TableField("create_time")
+    @JSONField(name = "create_time")
     private Date createTime;
 
     /**
      * 更新时间
      * */
+    @JSONField(name = "modify_time")
     @TableField("modify_time")
     private Date modifyTime;
 
@@ -82,77 +71,38 @@ public class WeixinUser {
     @TableField("version")
     private Long version;
 
-    @TableField("weixin_key")
-    private String weixinKey;
-
     /**
-     * 记账用户id
+     * 用户id
      * */
-    @TableField("money_user_id")
-    private Long moneyUserId;
+    @TableField("user_id")
+    private Long userId;
 
-    public Long getMoneyUserId() {
-        return moneyUserId;
+    /**子分类*/
+    @TableField(select = false)
+    private List<Category> childs;
+
+    public List<Category> getChilds() {
+        return childs;
     }
 
-    public void setMoneyUserId(Long moneyUserId) {
-        this.moneyUserId = moneyUserId;
+    public void setChilds(List<Category> childs) {
+        this.childs = childs;
     }
 
-    public String getNickName() {
-        return nickName;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setNickName(String nickName) {
-        this.nickName = nickName;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
-    public Integer getGender() {
-        return gender;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setGender(Integer gender) {
-        this.gender = gender;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getProvince() {
-        return province;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Long getId() {
@@ -162,6 +112,31 @@ public class WeixinUser {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getIconPath() {
+        return iconPath;
+    }
+
+    public void setIconPath(String iconPath) {
+        this.iconPath = iconPath;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
 
     public String getStatus() {
         return status;
@@ -193,13 +168,5 @@ public class WeixinUser {
 
     public void setVersion(Long version) {
         this.version = version;
-    }
-
-    public String getWeixinKey() {
-        return weixinKey;
-    }
-
-    public void setWeixinKey(String weixinKey) {
-        this.weixinKey = weixinKey;
     }
 }

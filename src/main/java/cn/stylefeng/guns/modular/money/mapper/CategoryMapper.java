@@ -1,8 +1,7 @@
 package cn.stylefeng.guns.modular.money.mapper;
 
-import cn.stylefeng.guns.modular.money.entity.MoneyUser;
+import cn.stylefeng.guns.modular.money.entity.Category;
 import cn.stylefeng.guns.modular.money.entity.WeixinUser;
-import cn.stylefeng.guns.modular.system.entity.User;
 import cn.stylefeng.roses.core.datascope.DataScope;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,7 +19,7 @@ import java.util.Map;
  * @since 2018-12-07
  */
 @Repository
-public interface WeixinUserMapper extends BaseMapper<WeixinUser> {
+public interface CategoryMapper extends BaseMapper<Category> {
 
     /**
      * 修改用户状态

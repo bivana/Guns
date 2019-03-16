@@ -1,11 +1,13 @@
 package cn.stylefeng.guns.modular.money.mapper;
 
 import cn.stylefeng.guns.modular.money.entity.MoneyUser;
+import cn.stylefeng.guns.modular.money.entity.WeixinUser;
 import cn.stylefeng.guns.modular.system.entity.User;
 import cn.stylefeng.roses.core.datascope.DataScope;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 
@@ -17,7 +19,8 @@ import java.util.Map;
  * @author stylefeng
  * @since 2018-12-07
  */
-public interface MoneyUserMapper extends BaseMapper<MoneyUser> {
+@Repository
+public interface WeixinUserMapper extends BaseMapper<WeixinUser> {
 
     /**
      * 修改用户状态
@@ -42,6 +45,6 @@ public interface MoneyUserMapper extends BaseMapper<MoneyUser> {
     /**
      * 通过账号获取用户
      */
-    User getByAccount(@Param("account") String account);
+    WeixinUser getByKey(@Param("weixinKey") String weixinKey);
 
 }

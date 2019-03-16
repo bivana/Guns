@@ -15,25 +15,27 @@
  */
 package cn.stylefeng.guns.modular.api;
 
-import cn.stylefeng.guns.core.shiro.ShiroKit;
-import cn.stylefeng.guns.core.shiro.ShiroUser;
-import cn.stylefeng.guns.core.util.JwtTokenUtil;
-import cn.stylefeng.guns.modular.system.entity.User;
+import cn.stylefeng.guns.modular.money.entity.MoneyUser;
+import cn.stylefeng.guns.modular.money.factory.SessionFactory;
+import cn.stylefeng.guns.modular.money.model.MoneyUserDto;
+import cn.stylefeng.guns.modular.cache.MoneyUserCache;
+import cn.stylefeng.guns.modular.money.entity.WeixinUser;
+import cn.stylefeng.guns.modular.money.service.MoneyUserService;
+import cn.stylefeng.guns.modular.money.service.WeixinUserService;
 import cn.stylefeng.guns.modular.system.mapper.UserMapper;
 import cn.stylefeng.roses.core.base.controller.BaseController;
-import cn.stylefeng.roses.core.reqres.response.ErrorResponseData;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
-import org.apache.shiro.crypto.hash.Md5Hash;
-import org.apache.shiro.util.ByteSource;
+import cn.stylefeng.roses.core.reqres.response.ResponseData;
+import cn.stylefeng.roses.core.reqres.response.SuccessResponseData;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * 接口控制器提供
@@ -42,54 +44,141 @@ import java.util.HashMap;
  * @Date 2018/7/20 23:39
  */
 @RestController
-@RequestMapping("/gunsApi")
-public class GunsApiController extends BaseController {
+@RequestMapping("/api")
+public class ApiController extends BaseController {
+
 
     @Autowired
-    private UserMapper userMapper;
+    private MoneyUserService moneyUserService;
+
+    @Autowired
+    private WeixinUserService weixinUserService;
+
+    private static final String extra="bivana is genus";
 
     /**
-     * api登录接口，通过账号密码获取token
+     * 用户设置借口
      */
-    @RequestMapping("/auth")
-    public Object auth(@RequestParam("username") String username,
-                       @RequestParam("password") String password) {
-
-        //封装请求账号密码为shiro可验证的token
-        UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password.toCharArray());
-
-        //获取数据库中的账号密码，准备比对
-        User user = userMapper.getByAccount(username);
-
-        String credentials = user.getPassword();
-        String salt = user.getSalt();
-        ByteSource credentialsSalt = new Md5Hash(salt);
-        SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(
-                new ShiroUser(), credentials, credentialsSalt, "");
-
-        //校验用户账号密码
-        HashedCredentialsMatcher md5CredentialsMatcher = new HashedCredentialsMatcher();
-        md5CredentialsMatcher.setHashAlgorithmName(ShiroKit.hashAlgorithmName);
-        md5CredentialsMatcher.setHashIterations(ShiroKit.hashIterations);
-        boolean passwordTrueFlag = md5CredentialsMatcher.doCredentialsMatch(
-                usernamePasswordToken, simpleAuthenticationInfo);
-
-        if (passwordTrueFlag) {
-            HashMap<String, Object> result = new HashMap<>();
-            result.put("token", JwtTokenUtil.generateToken(String.valueOf(user.getUserId())));
-            return result;
-        } else {
-            return new ErrorResponseData(500, "账号密码错误！");
+    @RequestMapping(value = "/settings", method = {RequestMethod.GET,RequestMethod.POST})
+    @ResponseBody
+    public Object settings(HttpServletRequest request) {
+        String session=SessionFactory.buildSession(request);
+        MoneyUserDto moneyUserDto=MoneyUserCache.getUser(session);
+        String weixinKey=request.getHeader("X-WX-Skey");
+        //如果缓存中不存在，从数据库中查询
+        if(moneyUserDto==null){
+            MoneyUser moneyUser=moneyUserService.getByWeixinKey(weixinKey);
+            moneyUserDto=new MoneyUserDto();
+            BeanUtils.copyProperties(moneyUser,moneyUserDto);
+            moneyUserDto.setAlreadyLogin(true);
+            MoneyUserCache.setUser(session,moneyUserDto);
+        }else{
+            moneyUserDto=new MoneyUserDto();
+            moneyUserDto.setAlreadyLogin(false);
+            moneyUserDto.setName("访客");
+            moneyUserDto.setAvatarUrl("../public/images/no_login_avatar.png");
         }
+
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("user",moneyUserDto);
+        jsonObject.put("versin",moneyUserDto.getVersion());
+        return jsonObject;
     }
 
     /**
-     * 测试接口是否走鉴权
+     * 获取sessionId
      */
-    @RequestMapping(value = "/test", method = RequestMethod.POST)
-    public Object test() {
-        return SUCCESS_TIP;
+    @RequestMapping(value = "/check_openid", method = {RequestMethod.GET,RequestMethod.POST})
+    @ResponseBody
+    public Object checkOpenId(HttpServletRequest request) {
+        String code=request.getHeader("X-WX-Code");
+        String appId=request.getHeader("X-WX-APP-ID");
+        JSONObject jsonObject=new JSONObject();
+        String session=SessionFactory.buildSession(appId,code);
+        jsonObject.put("session",session);
+        return jsonObject;
     }
+
+    /**
+     * 用户设置借口
+     */
+    @RequestMapping(value = "/users/update_user", method = {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT})
+    @ResponseBody
+    public Object updateUser(HttpServletRequest request, @RequestBody WeixinUser weixinUser) {
+        String appId=request.getHeader("X-WX-APP-ID");
+        String weixinKey=request.getHeader("X-WX-Skey");
+        if(weixinUser!=null){
+            weixinUser.setWeixinKey(weixinKey);
+            weixinUserService.addOrUpdate(weixinUser);
+        }
+        SuccessResponseData successResponseData=new SuccessResponseData();
+        return successResponseData;
+    }
+
+
+    /**
+     * 首页上半部返回
+     */
+    @RequestMapping(value = "/header", method = {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT})
+    @ResponseBody
+    public Object header(HttpServletRequest request) {
+        String appId=request.getHeader("X-WX-APP-ID");
+        String weixinKey=request.getHeader("X-WX-Skey");
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("bg_avatar","https://www.orzjj.com/jiezhang/images/header.jpg");
+        jsonObject.put("position_1_human_name","今日支出：20.00");
+        jsonObject.put("position_2_human_name","本月支出：100.00");
+        jsonObject.put("position_3_human_name","预算剩余：3.00");
+        jsonObject.put("show_notice_bar",false);//是否显示通知信息
+        jsonObject.put("notice_bar_path","#");//通知跳转rul
+        jsonObject.put("notice_text","notice_text");//通知信息
+        return jsonObject;
+    }
+
+    /**
+     * 首页上半部返回
+     */
+    @RequestMapping(value = "/index", method = {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT})
+    @ResponseBody
+    public Object index(HttpServletRequest request) {
+        String appId=request.getHeader("X-WX-APP-ID");
+        String weixinKey=request.getHeader("X-WX-Skey");
+        JSONArray jsonArray=new JSONArray();
+        return jsonArray;
+    }
+
+    /**
+     * 首页上半部返回
+     */
+    @RequestMapping(value = "/icons/categories", method = {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT})
+    @ResponseBody
+    public Object iconCategory(HttpServletRequest request) {
+        String appId=request.getHeader("X-WX-APP-ID");
+        String weixinKey=request.getHeader("X-WX-Skey");
+        JSONArray jsonArray=new JSONArray();
+        List<String> list=new ArrayList<>();
+        list.add("菜.png");
+        list.add("shopping.png");
+        jsonArray.add(list);
+        return jsonArray;
+    }
+
+    /**
+     * 首页上半部返回
+     */
+    @RequestMapping(value = "/icons/assets", method = {RequestMethod.GET,RequestMethod.POST,RequestMethod.PUT})
+    @ResponseBody
+    public Object iconAssets(HttpServletRequest request) {
+        String appId=request.getHeader("X-WX-APP-ID");
+        String weixinKey=request.getHeader("X-WX-Skey");
+        JSONArray jsonArray=new JSONArray();
+        List<String> list=new ArrayList<>();
+        list.add("菜.png");
+        list.add("shopping.png");
+        jsonArray.add(list);
+        return jsonArray;
+    }
+
 
 }
 

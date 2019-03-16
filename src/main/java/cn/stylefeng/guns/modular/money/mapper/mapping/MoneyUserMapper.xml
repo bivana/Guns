@@ -1,42 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.stylefeng.guns.modular.system.mapper.UserMapper">
+<mapper namespace="cn.stylefeng.guns.modular.money.mapper.MoneyUserMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="cn.stylefeng.guns.modular.system.entity.User">
-        <id column="USER_ID" property="userId"/>
-        <result column="AVATAR" property="avatar"/>
-        <result column="ACCOUNT" property="account"/>
-        <result column="PASSWORD" property="password"/>
-        <result column="SALT" property="salt"/>
-        <result column="NAME" property="name"/>
-        <result column="BIRTHDAY" property="birthday"/>
-        <result column="SEX" property="sex"/>
-        <result column="EMAIL" property="email"/>
-        <result column="PHONE" property="phone"/>
-        <result column="ROLE_ID" property="roleId"/>
-        <result column="DEPT_ID" property="deptId"/>
-        <result column="STATUS" property="status"/>
-        <result column="CREATE_TIME" property="createTime"/>
-        <result column="CREATE_USER" property="createUser"/>
-        <result column="UPDATE_TIME" property="updateTime"/>
-        <result column="UPDATE_USER" property="updateUser"/>
-        <result column="VERSION" property="version"/>
+    <resultMap id="BaseResultMap" type="cn.stylefeng.guns.modular.money.entity.MoneyUser">
+        <id column="user_id" property="userId"/>
+        <result column="name" property="name"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="bonus_points" property="bonusPoints"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="modify_time" property="modifyTime"/>
+        <result column="version" property="version"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        USER_ID AS userId, AVATAR AS avatar, ACCOUNT AS account,
-        NAME AS name, BIRTHDAY AS birthday, SEX AS sex, EMAIL AS email, PHONE AS phone,
-         ROLE_ID AS roleId, DEPT_ID AS deptId, STATUS AS status, CREATE_TIME AS createTime, CREATE_USER AS createUser,
-          UPDATE_TIME AS updateTime, UPDATE_USER AS updateUser, VERSION AS version
+        user_id,name,avatar_url,bonus_points,status,create_time,modify_time,version
     </sql>
 
     <sql id="Base_Column_List_With_Pwd">
-		 USER_ID AS userId, AVATAR AS avatar, ACCOUNT AS account, PASSWORD AS password,
-        SALT AS salt, NAME AS name, BIRTHDAY AS birthday, SEX AS sex, EMAIL AS email, PHONE AS phone,
-         ROLE_ID AS roleId, DEPT_ID AS deptId, STATUS AS status, CREATE_TIME AS createTime, CREATE_USER AS createUser,
-          UPDATE_TIME AS updateTime, UPDATE_USER AS updateUser, VERSION AS version
+		 user_id,name,avatar_url,bonus_points,status,create_time,modify_time,version
 	</sql>
 
     <select id="selectUsers" resultType="map">
@@ -70,10 +54,17 @@
 		#{userId}
 	</update>
 
-    <select id="getByAccount" resultType="cn.stylefeng.guns.modular.system.entity.User">
-        select
-        <include refid="Base_Column_List_With_Pwd"/>
-        from sys_user where ACCOUNT = #{account} and STATUS != 'DELETED'
+    <select id="getByWeixinKey" resultType="cn.stylefeng.guns.modular.money.entity.MoneyUser">
+        select b.*
+        from
+          (select *
+           from weixin_user where  STATUS != 'DELETED'
+           and weixin_key=#{weixinKey}
+          ) a
+        join
+          (select * from money_user where status!='DELETE'
+           ) b
+        on a.money_user_id=b.user_id
     </select>
 
 </mapper>

@@ -1,11 +1,12 @@
 package cn.stylefeng.guns.modular.money.service;
 
 import cn.stylefeng.guns.core.common.constant.state.ManagerStatus;
+import cn.stylefeng.guns.modular.money.entity.Category;
 import cn.stylefeng.guns.modular.money.entity.MoneyUser;
 import cn.stylefeng.guns.modular.money.entity.WeixinUser;
+import cn.stylefeng.guns.modular.money.mapper.CategoryMapper;
 import cn.stylefeng.guns.modular.money.mapper.MoneyUserMapper;
 import cn.stylefeng.guns.modular.money.mapper.WeixinUserMapper;
-import cn.stylefeng.guns.modular.system.factory.UserFactory;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,57 +23,22 @@ import java.util.Date;
  * @since 2018-12-07
  */
 @Service
-public class WeixinUserService extends ServiceImpl<WeixinUserMapper, WeixinUser> {
+public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
-    @Autowired
-    private MoneyUserMapper moneyUserMapper;
 
-    /**
-     * 添加或更新用户
-     * */
-    public void addOrUpdate(WeixinUser weixinUser){
-        WeixinUser exists=getByKey(weixinUser.getWeixinKey());
-        if(exists==null){
-            addUser(weixinUser);
-        }else{
-            editUser(weixinUser);
-        }
-    }
 
-    /**
-     * 添加用戶
-     *
-     * @author fengshuonan
-     * @Date 2018/12/24 22:51
-     */
-    @Transactional
-    public void addUser(WeixinUser weixinUser) {
-        MoneyUser moneyUser=new MoneyUser();
-        moneyUser.setAvatarUrl(weixinUser.getAvatarUrl());
-        moneyUser.setBonusPoints(0.0);
-        moneyUser.setCreateTime(new Date());
-        moneyUser.setStatus(ManagerStatus.OK.getCode());
-        moneyUser.setName(weixinUser.getNickName());
-        moneyUserMapper.insert(moneyUser);
-
-        weixinUser.setCreateTime(new Date());
-        weixinUser.setStatus(ManagerStatus.OK.getCode());
-        weixinUser.setMoneyUserId(moneyUser.getUserId());
-        this.save(weixinUser);
-
-    }
-
-    /**
-     * 修改用户
-     *
-     * @author fengshuonan
-     * @Date 2018/12/24 22:53
-     */
-    public void editUser(WeixinUser user) {
-        WeixinUser oldUser = this.getByKey(user.getWeixinKey());
-        user.setId(oldUser.getId());
-        this.updateById(user);
-    }
+//
+//    /**
+//     * 修改用户
+//     *
+//     * @author fengshuonan
+//     * @Date 2018/12/24 22:53
+//     */
+//    public void editUser(WeixinUser user) {
+//        WeixinUser oldUser = this.getByKey(user.getWeixinKey());
+//        user.setId(oldUser.getId());
+//        this.updateById(user);
+//    }
 //
 //    /**
 //     * 删除用户

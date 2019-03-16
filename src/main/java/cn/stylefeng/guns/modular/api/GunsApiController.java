@@ -43,7 +43,7 @@ import java.util.HashMap;
  */
 @RestController
 @RequestMapping("/gunsApi")
-public class ApiController extends BaseController {
+public class GunsApiController extends BaseController {
 
     @Autowired
     private UserMapper userMapper;
